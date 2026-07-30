@@ -1,18 +1,13 @@
-async function runFn() {
-    try{
-        console.log('running task')
-    }catch(err){
-        console.log(err)
-    }
+const express = require('express')
+const authMiddleware = require('./auth-middleware')
 
-}
+const app = express();
 
+app.use("/configurations", authMiddleware);  // cognito authentication protects all the configuration endpoints
+app.get('/configurations', (req, res) => {
+    res.send('Some configs')
+})
 
-
-
-if(process.env.NODE_ENV !== 'dev') {
-    runFn().catch(console.error);
-}
-
-
-module.exports.run = runFn;
+app.listen(3030, () => {
+    console.log("Listening on port 3030");
+});
