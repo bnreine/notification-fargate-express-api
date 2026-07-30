@@ -14,6 +14,7 @@ const start = async ()=>{
     const configurationInstance = new Configuration();
 
     app.get('/configurations', (req, res) => {
+        // console.log('userId', req.user.username)
         res.send('Some configs')
     })
     app.get(`/configurations/:configurationId`, (req, res) => {
