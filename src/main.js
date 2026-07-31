@@ -8,6 +8,7 @@ const start = async ()=>{
 
     const app = express();
 
+    app.set("trust proxy", 1);
     app.use("/configurations", authMiddleware);  // cognito authentication protects all the configuration endpoints
 
     app.use(express.json());
