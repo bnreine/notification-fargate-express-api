@@ -15,6 +15,10 @@ const start = async ()=>{
 
     const configurationInstance = new Configuration();
 
+    app.get("/health", (req, res) => {
+        res.sendStatus(200);
+    });
+
     app.get('/configurations', (req, res) => {
         // console.log('userId', req.user.username)
         res.send('Some configs')
