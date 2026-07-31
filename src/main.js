@@ -37,13 +37,7 @@ const start = async ()=>{
         });
     })
 
-    app.delete(`/configurations/:configurationId`, (req, res) => {
-        const { configurationId } = req.params;
-
-        res.json({
-            deleted: true
-        });
-    })
+    app.delete(`/configurations/:configurationId`, configurationInstance.delete)
 
 
 

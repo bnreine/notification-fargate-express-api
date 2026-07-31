@@ -65,7 +65,34 @@ class Configuration {
     }
 
     async delete(req, res) {
+        try {
+            const userId = req.user.username
+            const id = req.params.configurationId;
 
+            const dbPool = getDbPool();
+
+            const response = await dbPool.query(
+                'DELETE from "NotificationConfig" where "Id" = $1 and "userId" = $2',
+                [id, userId]
+            );
+
+            console.log(response);
+
+            if(response.rowCount === 0){
+                return res.status(404).json({
+                    error: {
+                        code: "NOT_FOUND",
+                        message: "Configuration not found."
+                    }
+                });
+            }
+
+            return res.sendStatus(204);
+        } catch (err){
+            return res.status(500).json({
+                error: {details : err.message, message: "internal server error"}
+            });
+        }
     }
 
     async put(req,res) {
