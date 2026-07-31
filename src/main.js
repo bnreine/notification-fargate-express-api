@@ -10,6 +10,7 @@ const start = async ()=>{
 
     app.use("/configurations", authMiddleware);  // cognito authentication protects all the configuration endpoints
 
+    app.use(express.json());
 
     const configurationInstance = new Configuration();
 
@@ -25,9 +26,7 @@ const start = async ()=>{
         });
     })
 
-    app.post('/configurations', (req, res) => {
-        res.send('new configId')
-    })
+    app.post('/configurations', configurationInstance.post)
 
     app.put(`/configurations/:configurationId`, (req, res) => {
         const { configurationId } = req.params;
