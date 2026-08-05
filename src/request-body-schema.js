@@ -49,6 +49,10 @@ const schema = {
             ]
         }
     },
+    "required": [
+        "enabled",
+        "config"
+    ],
     "additionalProperties": false
 }
 
