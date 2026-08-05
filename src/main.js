@@ -19,17 +19,9 @@ const start = async ()=>{
         res.sendStatus(200);
     });
 
-    app.get('/configurations', (req, res) => {
-        // console.log('userId', req.user.username)
-        res.send('Some configs')
-    })
-    app.get(`/configurations/:configurationId`, (req, res) => {
-        const { configurationId } = req.params;
+    app.get('/configurations', configurationInstance.list)
 
-        res.json({
-            id: configurationId,
-        });
-    })
+    app.get(`/configurations/:configurationId`, configurationInstance.get)
 
     app.post('/configurations', configurationInstance.post)
 

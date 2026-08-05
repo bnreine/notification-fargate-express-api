@@ -14,7 +14,55 @@ const validate = ajv.compile(schema)
 
 class Configuration {
     async list(req, res) {
+        try {
+            const userId = req.user.username
+            const dbPool = getDbPool();
 
+            const DEFAULT_LIMIT = 20;
+            const MAX_LIMIT = 100;
+
+            const parsedLimit = parseInt(req.query.limit, 10);
+            const parsedOffset = parseInt(req.query.offset, 10);
+            const limit = Number.isFinite(parsedLimit) && parsedLimit > 0
+                ? Math.min(parsedLimit, MAX_LIMIT)
+                : DEFAULT_LIMIT;
+            const offset = Number.isFinite(parsedOffset) && parsedOffset >= 0
+                ? parsedOffset
+                : 0;
+
+            const response = await dbPool.query(
+                'SELECT * FROM "NotificationConfig" WHERE "userId" = $1 ORDER BY "updatedAt" DESC, "Id" DESC LIMIT $2 OFFSET $3',
+                [userId, limit + 1, offset]
+            );
+
+            const hasMore = response.rows.length > limit;
+            const rows = hasMore ? response.rows.slice(0, limit) : response.rows;
+
+            const baseUrl = `${req.protocol}://${req.get("host")}/configurations`;
+            const configurations = rows.map((row) => {
+                const location = `${baseUrl}/${row.Id}`;
+                return hal(row).addLink('self', location);
+            });
+
+            const selfUrl = `${baseUrl}?limit=${limit}&offset=${offset}`;
+            const collection = hal({ count: configurations.length, hasMore })
+                .addLink('self', selfUrl)
+                .addEmbed('configurations', configurations);
+
+            if (hasMore) {
+                collection.addLink('next', `${baseUrl}?limit=${limit}&offset=${offset + limit}`);
+            }
+            if (offset > 0) {
+                const prevOffset = Math.max(offset - limit, 0);
+                collection.addLink('prev', `${baseUrl}?limit=${limit}&offset=${prevOffset}`);
+            }
+
+            return res.json(collection);
+        } catch (err) {
+            return res.status(500).json({
+                error: {details : err.message, message: "internal server error"}
+            });
+        }
     }
 
     async post(req, res) {
@@ -55,7 +103,34 @@ class Configuration {
     }
 
     async get(req, res) {
+        try {
+            const userId = req.user.username
+            const id = req.params.configurationId;
+            const dbPool = getDbPool();
 
+            const response = await dbPool.query(
+                'SELECT * FROM "NotificationConfig" WHERE "Id" = $1 AND "userId" = $2',
+                [id, userId]
+            );
+
+            if (response.rowCount === 0) {
+                return res.status(404).json({
+                    error: {
+                        code: "NOT_FOUND",
+                        message: "Configuration not found."
+                    }
+                });
+            }
+
+            const config = response.rows[0];
+            const location = `${req.protocol}://${req.get("host")}/configurations/${id}`;
+            const resource = hal(config).addLink('self', location);
+            return res.json(resource);
+        } catch (err) {
+            return res.status(500).json({
+                error: {details : err.message, message: "internal server error"}
+            });
+        }
     }
 
     async delete(req, res) {
