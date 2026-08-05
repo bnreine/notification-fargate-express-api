@@ -36,15 +36,9 @@ class Configuration {
             const id = crypto.randomUUID();
             const createdAt = new Date().toISOString();
 
-            await dbPool.query(
-                'INSERT INTO "NotificationConfig" ("Id", "userId", "config", "enabled", "createdAt", "updatedAt") VALUES ($1, $2, $3, $4, $5, $6)',
-                [id, userId, config, enabled, createdAt, createdAt]
-            );
-
-            const queryString = `select * from  "NotificationConfig" where "Id" = '${id}'`
-
             const response = await dbPool.query(
-                queryString
+                'INSERT INTO "NotificationConfig" ("Id", "userId", "config", "enabled", "createdAt", "updatedAt") VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+                [id, userId, config, enabled, createdAt, createdAt]
             );
 
             const newConfig = response.rows[0]
@@ -96,7 +90,53 @@ class Configuration {
     }
 
     async put(req,res) {
-        // validate the body
+        try {
+            console.log('hey')
+            const userId = req.user.username
+            const id = req.params.configurationId;
+            const dbPool = getDbPool();
+
+            console.log('body: ', req.body)
+
+            const valid = validate(req.body)
+            if (!valid){
+                return res.status(400).json({
+                    error: {details : validate.errors, message: "client validation error"}
+                });
+            }
+
+            const {enabled, config} = req.body;
+
+            const updatedAt = new Date().toISOString();
+
+            const response = await dbPool.query(
+                'UPDATE "NotificationConfig" SET "config" = $1, "enabled" = $2, "updatedAt" = $3 where "Id" = $4 and "userId" = $5 RETURNING *',
+                [config, enabled, updatedAt, id, userId]
+            );
+
+            console.log(response);
+
+            if(response.rowCount === 0){
+                return res.status(404).json({
+                    error: {
+                        code: "NOT_FOUND",
+                        message: "Configuration not found."
+                    }
+                });
+            }
+
+
+            const newConfig = response.rows[0]
+            console.log(newConfig);
+            const location = `${req.protocol}://${req.get("host")}/configurations/${id}`;
+
+            const resource = hal(newConfig).addLink('self', location);
+            return res.status(200).json(resource);
+        } catch (err){
+            return res.status(500).json({
+                error: {details : err.message, message: "internal server error"}
+            });
+        }
     }
 }
 

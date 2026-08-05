@@ -33,20 +33,9 @@ const start = async ()=>{
 
     app.post('/configurations', configurationInstance.post)
 
-    app.put(`/configurations/:configurationId`, (req, res) => {
-        const { configurationId } = req.params;
-
-        res.json({
-            id: configurationId,
-        });
-    })
+    app.put(`/configurations/:configurationId`, configurationInstance.put)
 
     app.delete(`/configurations/:configurationId`, configurationInstance.delete)
-
-
-
-
-
 
     app.listen(3030, () => {
         console.log("Listening on port 3030");
