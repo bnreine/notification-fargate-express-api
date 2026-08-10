@@ -41,7 +41,7 @@ class Configuration {
             const baseUrl = `${req.protocol}://${req.get("host")}/configurations`;
             const configurations = rows.map((row) => {
                 const location = `${baseUrl}/${row.Id}`;
-                return hal(row).addLink('self', location);
+                return hal(row).addLink('self', location).addLink('configurationPreferences', `${location}/preferences`);
             });
 
             const selfUrl = `${baseUrl}?limit=${limit}&offset=${offset}`;
@@ -93,7 +93,7 @@ class Configuration {
             console.log(newConfig);
             const location = `${req.protocol}://${req.get("host")}/configurations/${id}`;
 
-            const resource = hal(newConfig).addLink('self', location);
+            const resource = hal(newConfig).addLink('self', location).addLink('configurationPreferences', `${location}/preferences`);
             return res.status(201).location(location).json(resource);
         } catch (err){
             return res.status(500).json({
@@ -124,7 +124,7 @@ class Configuration {
 
             const config = response.rows[0];
             const location = `${req.protocol}://${req.get("host")}/configurations/${id}`;
-            const resource = hal(config).addLink('self', location);
+            const resource = hal(config).addLink('self', location).addLink('configurationPreferences', `${location}/preferences`);
             return res.json(resource);
         } catch (err) {
             return res.status(500).json({
@@ -166,7 +166,6 @@ class Configuration {
 
     async put(req,res) {
         try {
-            console.log('hey')
             const userId = req.user.username
             const id = req.params.configurationId;
             const dbPool = getDbPool();
@@ -205,7 +204,7 @@ class Configuration {
             console.log(newConfig);
             const location = `${req.protocol}://${req.get("host")}/configurations/${id}`;
 
-            const resource = hal(newConfig).addLink('self', location);
+            const resource = hal(newConfig).addLink('self', location).addLink('configurationPreferences', `${location}/preferences`);
             return res.status(200).json(resource);
         } catch (err){
             return res.status(500).json({
