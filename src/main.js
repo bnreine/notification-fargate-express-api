@@ -2,6 +2,7 @@ const express = require('express')
 const authMiddleware = require('./auth-middleware')
 const Configuration = require('./configuration')
 const {connectDB} = require('./db-connect')
+const cors = require('cors');
 
 const start = async ()=>{
     await connectDB()
@@ -9,6 +10,29 @@ const start = async ()=>{
     const app = express();
 
     app.set("trust proxy", 1);
+
+
+    app.use(cors({
+        origin: [
+            'https://api.notification.benjaminreinecke.click',
+            'http://localhost:8080',
+        ],
+        allowedHeaders: [
+            'Content-Type',
+            'Authorization',
+        ],
+        exposedHeaders: [
+            'Location',
+        ],
+        methods: [
+            'GET',
+            'POST',
+            'PUT',
+            'DELETE',
+            'OPTIONS',
+        ],
+    }));
+
     app.use("/configurations", authMiddleware);  // cognito authentication protects all the configuration endpoints
 
     app.use(express.json());
