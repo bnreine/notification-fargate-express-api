@@ -11,6 +11,7 @@ addFormats(ajv)
 
 const validate = ajv.compile(schema)
 
+const api2NotificationHost = 'api2.notifications.benjaminreinecke.click'
 
 class Configuration {
     async list(req, res) {
@@ -39,9 +40,11 @@ class Configuration {
             const rows = hasMore ? response.rows.slice(0, limit) : response.rows;
 
             const baseUrl = `${req.protocol}://${req.get("host")}/configurations`;
+            const preferencesBaseUrl = `${req.protocol}://${api2NotificationHost}/configurations`;
             const configurations = rows.map((row) => {
                 const location = `${baseUrl}/${row.Id}`;
-                return hal(row).addLink('self', location).addLink('configurationPreferences', `${location}/preferences`);
+                const preferencesLocation = `${preferencesBaseUrl}/${row.Id}/preferences`;
+                return hal(row).addLink('self', location).addLink('configurationPreferences', preferencesLocation);
             });
 
             const selfUrl = `${baseUrl}?limit=${limit}&offset=${offset}`;
@@ -92,8 +95,9 @@ class Configuration {
             const newConfig = response.rows[0]
             console.log(newConfig);
             const location = `${req.protocol}://${req.get("host")}/configurations/${id}`;
+            const preferencesLocation = `${req.protocol}://${api2NotificationHost}/configurations/${id}/preferences`;
 
-            const resource = hal(newConfig).addLink('self', location).addLink('configurationPreferences', `${location}/preferences`);
+            const resource = hal(newConfig).addLink('self', location).addLink('configurationPreferences', preferencesLocation);
             return res.status(201).location(location).json(resource);
         } catch (err){
             return res.status(500).json({
@@ -124,7 +128,8 @@ class Configuration {
 
             const config = response.rows[0];
             const location = `${req.protocol}://${req.get("host")}/configurations/${id}`;
-            const resource = hal(config).addLink('self', location).addLink('configurationPreferences', `${location}/preferences`);
+            const preferencesLocation = `${req.protocol}://${api2NotificationHost}/configurations/${id}/preferences`;
+            const resource = hal(config).addLink('self', location).addLink('configurationPreferences', preferencesLocation);
             return res.json(resource);
         } catch (err) {
             return res.status(500).json({
@@ -203,8 +208,9 @@ class Configuration {
             const newConfig = response.rows[0]
             console.log(newConfig);
             const location = `${req.protocol}://${req.get("host")}/configurations/${id}`;
+            const preferencesLocation = `${req.protocol}://${api2NotificationHost}/configurations/${id}/preferences`;
 
-            const resource = hal(newConfig).addLink('self', location).addLink('configurationPreferences', `${location}/preferences`);
+            const resource = hal(newConfig).addLink('self', location).addLink('configurationPreferences', preferencesLocation);
             return res.status(200).json(resource);
         } catch (err){
             return res.status(500).json({
