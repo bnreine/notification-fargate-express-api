@@ -14,7 +14,7 @@ const start = async ()=>{
 
     app.use(cors({
         origin: [
-            'https://api.notification.benjaminreinecke.click',
+            'https://notifications.benjaminreinecke.click',
             'http://localhost:8080',
         ],
         allowedHeaders: [
