@@ -24,6 +24,13 @@ class Configuration {
 
             const parsedLimit = parseInt(req.query.limit, 10);
             const parsedOffset = parseInt(req.query.offset, 10);
+            let parsedSort = []
+            if(Array.isArray(req.query.sort)){ // multi case
+                parsedSort = req.query.sort.map((sortItem)=>JSON.parse(sortItem))
+            } else if(req.query.sort){ // comes in as only a single string if only one
+                parsedSort = [JSON.parse(req.query.sort)]
+            }
+
             const limit = Number.isFinite(parsedLimit) && parsedLimit > 0
                 ? Math.min(parsedLimit, MAX_LIMIT)
                 : DEFAULT_LIMIT;
@@ -31,10 +38,34 @@ class Configuration {
                 ? parsedOffset
                 : 0;
 
-            const response = await dbPool.query(
-                'SELECT * FROM "NotificationConfig" WHERE "userId" = $1 ORDER BY "updatedAt" DESC, "Id" DESC LIMIT $2 OFFSET $3',
-                [userId, limit + 1, offset]
-            );
+            const firstSort = parsedSort[0]
+            let response
+            if(!firstSort){
+                response = await dbPool.query(
+                    'SELECT * FROM "NotificationConfig" WHERE "userId" = $1 LIMIT $2 OFFSET $3',
+                    [userId, limit + 1, offset]
+                );
+            } else {
+                const sortColumns = {
+                    type: `config->>'type'`,
+                    enabled: `"enabled"`,
+                    updatedAt: `"updatedAt"`
+                };
+
+                const sortDirection = {
+                    'DESC': 'DESC',
+                    'ASC': 'ASC'
+                }
+
+                const orderByField = sortColumns[firstSort.field];
+                const orderByDirection = sortDirection[firstSort.direction];
+                response = await dbPool.query(
+                    `SELECT * FROM "NotificationConfig" WHERE "userId" = $1 ORDER BY ${orderByField} ${orderByDirection} LIMIT $2 OFFSET $3`,
+                    [userId, limit + 1, offset]
+                );
+            }
+
+
 
             const hasMore = response.rows.length > limit;
             const rows = hasMore ? response.rows.slice(0, limit) : response.rows;
