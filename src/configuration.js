@@ -192,6 +192,11 @@ class Configuration {
                 });
             }
 
+            await dbPool.query(
+                'DELETE from "NotificationPreference" where "configId" = $1',
+                [id]
+            );
+
             return res.sendStatus(204);
         } catch (err){
             return res.status(500).json({
