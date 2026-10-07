@@ -51,12 +51,17 @@ const schema = {
                         "timezone": {
                             "type": "string",
                             "minLength": 1
+                        },
+                        "name": {
+                            "type": "string",
+                            "minLength": 1
                         }
                     },
                     "required": [
                         "type",
                         "targetAt",
-                        "timezone"
+                        "timezone",
+                        "name"
                     ],
 
                     "additionalProperties": false
