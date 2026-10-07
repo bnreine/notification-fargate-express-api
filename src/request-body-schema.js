@@ -15,18 +15,10 @@ const schema = {
                         "stock": {
                             "type": "string"
                         },
-                        // "lowerLimit": {
-                        //     "type": "number"
-                        // },
-                        // "upperLimit": {
-                        //     "type": "number"
-                        // }
                     },
                     "required": [
                         "type",
                         "stock",
-                        // "lowerLimit",
-                        // "upperLimit"
                     ],
                     "additionalProperties": false
                 },
@@ -44,6 +36,29 @@ const schema = {
                         "type",
                         "message"
                     ],
+                    "additionalProperties": false
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "type": {
+                            "const": "countdown"
+                        },
+                        "targetAt": {
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "timezone": {
+                            "type": "string",
+                            "minLength": 1
+                        }
+                    },
+                    "required": [
+                        "type",
+                        "targetAt",
+                        "timezone"
+                    ],
+
                     "additionalProperties": false
                 }
             ]
