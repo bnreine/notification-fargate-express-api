@@ -9,41 +9,60 @@ let dbPool
 
 const connectDB = async () => {
     try {
-    const secretClient = new SecretsManagerClient({});
 
-    const response = await secretClient.send(
-        new GetSecretValueCommand({
-            SecretId: 'write_read_rds_db',
-        })
-    );
+        let poolConfig
+        if(process.env.NODE_ENV === 'dev') {
 
-    const secret = JSON.parse(response.SecretString);
-
-    const baseConfig = {
-        port: secret.port,
-        database: secret.dbname,
-        user: secret.username,
-        password: secret.password,
-        max: 5,
-        idleTimeoutMillis: 30000,
-    }
-
-    const poolConfig = process.env.NODE_ENV === 'dev' ? {
-        host: 'localhost',
-        ...baseConfig,
-            ssl: {
-
-                rejectUnauthorized: false
+            poolConfig = {
+                host: 'localhost',
+                port: 5432,
+                database: 'notification',
+                user: 'postgres',
+                password: 'postgres',
+                max: 5,
+                idleTimeoutMillis: 30000,
             }
-        } :
-        {
-            host: secret.host,
-            ...baseConfig,
-            ssl: {
-                ca: fs.readFileSync(`${__dirname}/../certs/global-bundle.pem`, 'utf-8'),
-                rejectUnauthorized: true
+
+        } else if (process.env.NODE_ENV === 'test') {
+            poolConfig = {
+                host: 'localhost',
+                port: 5433,
+                database: 'notification',
+                user: 'postgres',
+                password: 'postgres',
+                max: 5,
+                idleTimeoutMillis: 30000,
             }
+        } else {
+            const secretClient = new SecretsManagerClient({});
+
+            const response = await secretClient.send(
+                new GetSecretValueCommand({
+                    SecretId: 'write_read_rds_db',
+                })
+            );
+
+            const secret = JSON.parse(response.SecretString);
+
+            poolConfig =
+                {
+                    host: secret.host,
+                    port: secret.port,
+                    database: secret.dbname,
+                    user: secret.username,
+                    password: secret.password,
+                    max: 5,
+                    idleTimeoutMillis: 30000,
+                    ssl: {
+                        ca: fs.readFileSync(`${__dirname}/../certs/global-bundle.pem`, 'utf-8'),
+                        rejectUnauthorized: true
+                    }
+                }
+
         }
+
+
+
 
         dbPool = new Pool({
             ...poolConfig,
